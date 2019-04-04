@@ -169,6 +169,7 @@ class Message(object):
         recipients=None,
         body=None,
         html=None,
+        related=None,
         sender=None,
         cc=None,
         bcc=None,
@@ -180,6 +181,7 @@ class Message(object):
         self.sender = sender
         self.body = body
         self.html = html
+        self.related = related
 
         self.recipients = recipients or []
         self.attachments = attachments or []
@@ -257,6 +259,16 @@ class Message(object):
             base.attach_part(altpart)
         else:
             altpart = base
+
+        if self.related:
+            altpart.set_body(None)
+            altpart.set_content_type('multipart/related')
+            part = MailBase()
+            altpart.attach_part(part)
+            for rel in self.related:
+                rel_mailbase = rel.to_mailbase()
+                altpart.attach_part(rel_mailbase)
+            altpart = part
             
         if body and html:
             altpart.set_content_type('multipart/alternative')
